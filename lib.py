@@ -32,4 +32,11 @@ def parse(inp:str, code:types.CodeType = None) -> types.CodeType:
             modes[mode].append((i, line))
     print(modes)
     # stage III
-    code_da
+    consts = ([], {}) # consts, name: id mapping
+    for i, line in modes["data"]:
+        typ = i[0]
+        cur_name = i[1]
+        if typ == "const":
+            sub = i[2]
+            if sub == "marshal":
+                item = marshal.loads(bytes.fromhex(i[3]))
