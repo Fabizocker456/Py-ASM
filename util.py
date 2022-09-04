@@ -1,11 +1,20 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 import dis, marshal, pickle, readline
+
+def pr_co(co):
+    for i in map(lambda i: i[3:], filter(lambda i: i.startswith("co_"), dir(co))):
+        j = getattr(co, "co_" + i)
+        t = type(j)
+        if t == bytes:
+            j = list(j)
+        print(f"{i}: ({t.__name__})")
+
 print("""
 Choose:
 1) Print all bytecode instructions
 2) Marshal any object
 3) Pickle any object
-4) Compile and disassemble input
+4) Compile and disassemble code
 """)
 inp = input("> ")
 if inp == "1":
@@ -23,8 +32,13 @@ if inp == "1":
             arg = "free variable"
         elif op in dis.hasname:
             arg = "name"
-        if arg:
-            arg = f" ({arg})"
+        elif op in dis.haslocal:
+            arg = "local variable"
+        elif op in dis.hascompare:
+            arg = "comparison"
+        else:
+            arg = "???"
+        arg = f" ({arg})"
         i = i.lower()
         i = i.ljust(maxlen)
         sop = f"{op}".rjust(3, "0")
@@ -38,13 +52,19 @@ elif inp == "3":
     c = eval(input(">>> "))
     print(pickle.dumps(c).hex())
 elif inp == "4":
-    print("enter \"end\" to stop")
+    print("enter \"::\" to stop")
     ls = []
     while 1:
         c = input(">>> ")
-        if c == "end":
+        if c == "::":
             break
         ls.append(c)
     ls = "\n".join(ls)
     c = compile(ls, "<asm>", "exec")
-    dis.dis(c)
+    try:
+        dis.dis(c, show_caches = True)
+    except:
+        dis.dis(c)
+    pr_co(c)
+else:
+    print("Invalid input!")

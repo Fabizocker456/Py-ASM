@@ -1,10 +1,7 @@
 #!/usr/bin/python
 import dis
-import sys
-import types, typing
-import regex as re
+import types
 import marshal, pickle
-import builtins
 
 def parse(inp:str, code:types.CodeType = None) -> types.CodeType:
     if not code:
@@ -75,14 +72,14 @@ def parse(inp:str, code:types.CodeType = None) -> types.CodeType:
             if act_var not in locs[0]:
                 locs[0].append(act_var)
             locs[1][cur_name] = locs[0].index(act_var)
-            if len(i) <= 4:
+            if len(i) >= 4:
                 argt = i[3]
-                if argt == "posonly":
+                if argt == "pos":
                     locs[2][0] += 1
                     locs[2][1] += 1
-                elif argt == "kwonly":
+                elif argt == "kw":
                     locs[2][2] += 1
-                elif argt == "":
+                elif argt == "var":
                     locs[2][0] += 1
 
     ops = []
@@ -91,7 +88,6 @@ def parse(inp:str, code:types.CodeType = None) -> types.CodeType:
         if i[0].startswith(":"):
             anchors[i.pop(0)[1:]] = addr
     for addr, (i, line) in enumerate(modes["code"]):
-        print(i)
         op = i[0]
         if op.isdigit() and 0 <= int(op) <= 255:
             op = int(op)
@@ -101,7 +97,6 @@ def parse(inp:str, code:types.CodeType = None) -> types.CodeType:
             ops.append([op, 0])
             continue
         arg = i[1]
-        print(addr)
         if arg.isdigit() and 0 <= int(arg) <= 255:
             ops.append([op, int(arg)])
             continue
@@ -121,7 +116,6 @@ def parse(inp:str, code:types.CodeType = None) -> types.CodeType:
             assert(anchors[arg] > addr)
             arg = anchors[arg] - addr
         ops.append([op, int(arg)])
-    print(ops)
     bytecode = b''
     for i in ops:
         bytecode += bytes(i)
