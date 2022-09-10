@@ -6,4 +6,5 @@ import lib
 with open(sys.argv[1], "r") as fi:
     doc = fi.read()
 co = lib.parse(doc)
+dis(co)
 exec(co)
